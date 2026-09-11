@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>本日のチャレンジ</title>
+<style>
+  :root {
+    --bg: rgba(14, 13, 11, .92);
+    --line: #3a3428;
+    --orange: #c47a2c;
+    --orange2: #e0a04a;
+    --text: #d7d1c4;
+    --mute: #8a8374;
+    --green: #8faf56;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: transparent;
+    font-family: "Yu Gothic UI", "Yu Gothic", "Meiryo", sans-serif;
+    color: var(--text);
+  }
+  .wrap { display: flex; align-items: flex-start; gap: 16px; }
+  .panel {
+    position: relative;
+    width: 460px;
+    flex: 0 0 460px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+  }
+  .panel::before,
+  .panel::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--orange);
+    pointer-events: none;
+  }
+  .panel::before { top: 4px; left: 4px; border-right: 0; border-bottom: 0; }
+  .panel::after { top: 4px; right: 4px; border-left: 0; border-bottom: 0; }
+  .editor {
+    width: 240px;
+    flex: 0 0 240px;
+    padding: 16px;
+    background: var(--bg);
+    border: 1px dashed var(--orange);
+  }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 14px 16px 10px;
+    background: linear-gradient(#1d1b16, #141310);
+    border-bottom: 1px solid var(--orange);
+  }
+  .kicker {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: .28em;
+    color: var(--orange);
+  }
+  .title {
+    margin-top: 4px;
+    font-size: 22px;
+    letter-spacing: .12em;
+    color: var(--orange2);
+  }
+  .count {
+    font-family: Consolas, "Courier New", monospace;
+    color: var(--orange2);
+    font-size: 12px;
+  }
+  .timer-wrap {
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .timer-label {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: .22em;
+    color: var(--mute);
+  }
+  .time {
+    margin-top: 4px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 32px;
+    letter-spacing: .08em;
+    color: var(--orange2);
+  }
+  .time small {
+    font-size: 12px;
+    margin: 0 4px;
+    color: var(--mute);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid #2a261e;
+    border-left: 2px solid transparent;
+  }
+  .row.active { border-left-color: var(--orange); background: rgba(196,122,44,.08); }
+  .row.done { border-left-color: var(--green); }
+  .no {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 10px;
+    color: var(--mute);
+  }
+  .check {
+    width: 13px;
+    height: 13px;
+    border: 1px solid var(--orange);
+    background: transparent;
+    cursor: pointer;
+  }
+  .check.done {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .body { min-width: 0; }
+  .name { outline: none; font-size: 15px; line-height: 1.3; }
+  .name.done { color: var(--mute); text-decoration: line-through; }
+  .status {
+    margin-top: 3px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: .12em;
+    color: var(--orange);
+  }
+  .row.done .status { color: var(--green); }
+  .done-at {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 11px;
+    color: var(--green);
+    white-space: nowrap;
+  }
+  .del {
+    display: none;
+    border: 0;
+    background: none;
+    color: var(--mute);
+    cursor: pointer;
+  }
+  .row:hover .del { display: inline; }
+  .plus, .ctrl {
+    width: 100%;
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid var(--orange);
+    color: var(--orange2);
+    padding: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .plus { height: 52px; font-size: 28px; margin-top: 0; }
+  .editor p { margin: 0 0 8px; font-size: 12px; color: var(--orange); }
+  .editor textarea {
+    width: 100%;
+    height: 110px;
+    margin-top: 10px;
+    background: #0f0e0c;
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 8px;
+    resize: vertical;
+    font-family: "Yu Gothic UI", "Meiryo", sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .note { margin-top: 12px; font-size: 11px; line-height: 1.6; color: var(--mute); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <div class="topbar">
+        <div>
+          <div class="kicker">TASKS / QUEST LOG</div>
+          <div class="title">本日のチャレンジ</div>
+        </div>
+        <div class="count" id="count">0 / 0 COMPLETED</div>
+      </div>
+      <div class="timer-wrap">
+        <div class="timer-label">RAID TIME</div>
+        <div class="time" id="time">00<small>時</small>00<small>分</small>00<small>秒</small></div>
+      </div>
+      <div id="list"></div>
+    </div>
+    <div class="editor">
+      <p>対話用メニュー</p>
+      <button class="plus" id="addBtn">＋</button>
+      <button class="ctrl" id="toggle">開始</button>
+      <button class="ctrl" id="reset">時間リセット</button>
+      <p style="margin-top:14px">まとめて追加</p>
+      <textarea id="bulk" placeholder="1行に1タスク&#10;ショート動画作成&#10;ご飯食べる&#10;お風呂入る"></textarea>
+      <button class="ctrl" id="bulkAdd">貼り付けて追加</button>
+      <div class="note">メモ帳で書いて、ここに貼って追加してください。右側は配信で切り取って隠します。</div>
+    </div>
+  </div>
+
+<script>
+const KEY = "tarkov-task-ledger-v2";
+let composing = false;
+let state = {
+  running: false,
+  elapsed: 0,
+  startedAt: null,
+  tasks: [
+    { name: "ショート動画作成", done: false, doneAt: null },
+    { name: "ご飯食べる", done: false, doneAt: null },
+    { name: "お風呂入る", done: false, doneAt: null }
+  ]
+};
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    if (saved) state = saved;
+  } catch (e) {}
+}
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+function currentElapsed() {
+  if (state.running && state.startedAt) {
+    return state.elapsed + Math.floor((Date.now() - state.startedAt) / 1000);
+  }
+  return state.elapsed;
+}
+function fmt(sec) {
+  const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+  const s = String(sec % 60).padStart(2, "0");
+  return `${h}<small>時</small>${m}<small>分</small>${s}<small>秒</small>`;
+}
+function fmtShort(sec) {
+  const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+  const s = String(sec % 60).padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+function firstOpenIndex() {
+  return state.tasks.findIndex(t => !t.done);
+}
+function render(focusLast) {
+  document.getElementById("time").innerHTML = fmt(currentElapsed());
+  const done = state.tasks.filter(t => t.done).length;
+  document.getElementById("count").textContent = `${done} / ${state.tasks.length} COMPLETED`;
+  document.getElementById("toggle").textContent = state.running ? "一時停止" : "開始";
+  const open = firstOpenIndex();
+  document.getElementById("list").innerHTML = state.tasks.map((t, i) => `
+    <div class="row ${t.done ? "done" : ""} ${!t.done && i === open ? "active" : ""}">
+      <div class="check ${t.done ? "done" : ""}" data-i="${i}"></div>
+      <div class="body">
+        <div class="name ${t.done ? "done" : ""}" contenteditable="true" lang="ja" data-i="${i}">${t.name}</div>
+        <div class="status">${t.done ? "COMPLETED" : (!t.done && i === open ? "ACTIVE OBJECTIVE" : "PENDING")}</div>
+      </div>
+      <div>
+        ${t.done && t.doneAt != null ? `<div class="done-at">${fmtShort(t.doneAt)}</div>` : `<div class="no">No.${i + 1}</div>`}
+        <button class="del" data-del="${i}">×</button>
+      </div>
+    </div>
+  `).join("");
+  if (focusLast) {
+    const last = document.querySelectorAll(".name");
+    const target = last[last.length - 1];
+    if (target) {
+      target.focus();
+      const range = document.createRange();
+      range.selectNodeContents(target);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+}
+
+load();
+render();
+setInterval(() => {
+  document.getElementById("time").innerHTML = fmt(currentElapsed());
+}, 250);
+
+document.getElementById("addBtn").onclick = () => {
+  state.tasks.push({ name: "ここを書き換える", done: false, doneAt: null });
+  save();
+  render(true);
+};
+document.getElementById("bulkAdd").onclick = () => {
+  const lines = document.getElementById("bulk").value.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+  if (!lines.length) return;
+  lines.forEach(name => state.tasks.push({ name, done: false, doneAt: null }));
+  document.getElementById("bulk").value = "";
+  save();
+  render();
+};
+document.getElementById("toggle").onclick = () => {
+  if (state.running) {
+    state.elapsed = currentElapsed();
+    state.running = false;
+    state.startedAt = null;
+  } else {
+    state.startedAt = Date.now();
+    state.running = true;
+  }
+  save();
+  render();
+};
+document.getElementById("reset").onclick = () => {
+  state.elapsed = 0;
+  state.running = false;
+  state.startedAt = null;
+  save();
+  render();
+};
+
+const list = document.getElementById("list");
+list.addEventListener("compositionstart", () => { composing = true; });
+list.addEventListener("compositionend", e => {
+  composing = false;
+  if (e.target.dataset.i !== undefined) {
+    state.tasks[+e.target.dataset.i].name = e.target.textContent;
+    save();
+  }
+});
+list.addEventListener("input", e => {
+  if (!composing && e.target.dataset.i !== undefined) {
+    state.tasks[+e.target.dataset.i].name = e.target.textContent;
+    save();
+  }
+});
+list.addEventListener("click", e => {
+  if (e.target.dataset.i !== undefined && e.target.classList.contains("check")) {
+    const i = +e.target.dataset.i;
+    state.tasks[i].done = !state.tasks[i].done;
+    state.tasks[i].doneAt = state.tasks[i].done ? currentElapsed() : null;
+    save();
+    render();
+  }
+  if (e.target.dataset.del !== undefined) {
+    state.tasks.splice(+e.target.dataset.del, 1);
+    save();
+    render();
+  }
+});
+</script>
+</body>
+</html>
